@@ -1,0 +1,11 @@
+[package]
+name = "excel_test"
+version = "0.1.0"
+authors = ["Bevan Hunt <bevan@bevanhunt.com>"]
+edition = "2018"
+
+[dependencies]
+calamine = "0.15.4"
+chrono = "0.4.6"
+crossbeam = "0.7.1"
+walkdir = "2.2.7"
