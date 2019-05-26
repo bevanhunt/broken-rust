@@ -24,7 +24,7 @@ use std::ptr::NonNull;
 // since this pattern cannot be described with the usual borrowing rules.
 // Instead we use a raw pointer, though one which is known to not be null,
 // since we know it's pointing at the string.
-struct Unmovable {
+pub struct Unmovable {
     data: String,
     slice: NonNull<String>,
     _pin: PhantomPinned,
@@ -58,8 +58,9 @@ pub struct AppState {
     pub counter: Cell<usize>,
 }
 
-pub fn save_file(field: Field, s: std::pin::Pin<std::boxed::Box<Unmovable>>) -> impl Future<Item = usize, Error = Error>  {
-    let p = std::path::Path::new(&s.data);
+pub fn save_file<'a>(field: Field, s: std::pin::Pin<std::boxed::Box<Unmovable>>) -> impl Future<Item = usize, Error = Error> + 'a {
+    let sk = s;
+    let p = std::path::Path::new(&sk.data);
     let file = match fs::File::create(p) {
         Ok(file) => file,
         Err(e) => return Either::A(err(error::ErrorInternalServerError(e))),
@@ -84,6 +85,7 @@ pub fn save_file(field: Field, s: std::pin::Pin<std::boxed::Box<Unmovable>>) -> 
                 })
             })
             .map(move |_| {
+                let p = std::path::Path::new(&sk.data);
                 let mut excel: Xlsx<_> = open_workbook(p).unwrap();
                 if let Some(Ok(r)) = excel.worksheet_range("sheet1") {
                     return r.rows().len();
